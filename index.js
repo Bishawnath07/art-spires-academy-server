@@ -1,15 +1,35 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const app = express();
 require('dotenv').config();
 const port = process.env.PORT || 5000;
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
  
  // middleware
  app.use(cors());
  app.use(express.json());
  
  
- const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+ const verifyJWT = (req , res , next) =>{
+  const authorization = req.headers.authorization;
+  if(!authorization){
+    return res.status(401).send({ error: true , message: 'unauthorized access'});
+  }
+
+  // bearer token
+  const token = authorization.split(' ')[1];
+
+  jwt.verify(token , process.env.ACCESS_TOKEN_SECRET, (err , decoded) => {
+    if(err){
+      return res.status(401).send({error: true , message: 'unauthorized access'})
+    }
+    req.decoded =decoded;
+    next();
+  })
+
+}
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.eo0io7y.mongodb.net/?retryWrites=true&w=majority`
 
@@ -31,6 +51,12 @@ async function run() {
     const instructorsCollection = client.db("artspiresDB").collection("instructors")
     const usersCollection = client.db("artspiresDB").collection("users")
 
+    // JWT
+    app.post('/jwt' , (req , res) => {
+      const user = req.body;
+      const token = jwt.sign(user , process.env.ACCESS_TOKEN_SECRET , {expiresIn: '1h'})
+      res.send({token})
+    })
 
     // users relatate api
     app.get('/users' , async (req , res)=>{
@@ -56,6 +82,18 @@ async function run() {
       const updateDoc = {
         $set: {
           role: 'admin'
+        },
+      }
+      const result = await usersCollection.updateOne(filter , updateDoc)
+      res.send(result)
+    })
+
+       app.patch('/users/instructor/:id' , async(req ,res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)} ;
+      const updateDoc = {
+        $set: {
+          role: 'instructor'
         },
       }
       const result = await usersCollection.updateOne(filter , updateDoc)
