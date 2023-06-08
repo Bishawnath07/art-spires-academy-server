@@ -155,13 +155,16 @@ async function run() {
     })
 
 
-
-
-
     // classes relate api
     app.get('/classes' , async(req , res) =>{
         const result = await classCollection.find().toArray();
         res.send(result);
+    })
+
+    app.post('/classes' , verifyJWT, verifyInstructor , async(req , res)  =>{
+      const newItem = req.body;
+      const result = await classCollection.insertOne(newItem);
+      res.send(result)
     })
 
     // Instructors relate api
