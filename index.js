@@ -50,6 +50,7 @@ async function run() {
     const classCollection = client.db("artspiresDB").collection("classes")
     const instructorsCollection = client.db("artspiresDB").collection("instructors")
     const usersCollection = client.db("artspiresDB").collection("users")
+    const studentCollection = client.db("artspiresDB").collection("selectClass")
 
     // JWT
     app.post('/jwt' , (req , res) => {
@@ -78,6 +79,8 @@ async function run() {
         }
         next();
       }
+      // Warning: use verifyJWT before using verifyInstructor
+      
 
 
     // users relatate api
@@ -85,7 +88,7 @@ async function run() {
     //   const result = await usersCollection.find().toArray();
     //   res.send(result);
     // })
-    app.get('/users',verifyJWT  , verifyInstructor , async (req , res)=>{
+    app.get('/users' , async (req , res)=>{
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
@@ -153,22 +156,33 @@ async function run() {
       const result = await usersCollection.updateOne(filter , updateDoc)
       res.send(result)
     })
+       
 
-
-    // classes relate api
-    app.get('/classes' , async(req , res) =>{
-        const result = await classCollection.find().toArray();
-        res.send(result);
-    })
-
-    app.post('/classes' , verifyJWT, verifyInstructor , async(req , res)  =>{
+    // student select their class
+    app.post('/classes'  , async(req , res)  =>{
       const newItem = req.body;
-      const result = await classCollection.insertOne(newItem);
+      const result = await studentCollection.insertOne(newItem);
       res.send(result)
     })
 
+    app.get('/selectclass' ,async(req , res) =>{
+      const result = await studentCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.delete('/selectclass/:id' , async(req , res) => {
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await studentCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    
+
+
+
     // Instructors relate api
-    app.get('/instructors' , async(req , res) =>{
+    app.get('/classes' , async(req , res) =>{
         const result = await classCollection.find().toArray();
         res.send(result);
     })
