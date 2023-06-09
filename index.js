@@ -166,12 +166,21 @@ async function run() {
     })
 
     // Get paid classes successfully
-    app.get('/succefulpay'  , async(req , res)=>{
+    app.get('/selectstudent'  , async(req , res)=>{
       let query = {} ;
       if(req.query?.email){
         query= {email: req.query.email }
       }
       const result = await studentCollection.find(query).toArray();
+      res.send(result)
+
+    })
+    app.get('/succefulpay'  , async(req , res)=>{
+      let query = {} ;
+      if(req.query?.email){
+        query= {email: req.query.email }
+      }
+      const result = await paymentCollection.find(query).toArray();
       res.send(result)
 
     })
