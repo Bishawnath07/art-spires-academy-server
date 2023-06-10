@@ -55,7 +55,9 @@ async function run() {
     await client.connect();
 
     const classCollection = client.db("artspiresDB").collection("classes")
-    const instructorsCollection = client.db("artspiresDB").collection("instructors")
+    const approveclassCollection = client.db("artspiresDB").collection("approveclasses")
+
+
     const usersCollection = client.db("artspiresDB").collection("users")
     const studentCollection = client.db("artspiresDB").collection("selectClass")
     const paymentCollection = client.db("artspiresDB").collection("payments")
@@ -180,13 +182,13 @@ async function run() {
       if(req.query?.email){
         query= {email: req.query.email }
       }
-      const result = await paymentCollection.find(query).toArray();
+      const result = await paymentCollection.find(query).sort({ timestamp: -1 }).toArray();
       res.send(result)
 
     })
 
     // student select their class
-    app.post('/classes'  , async(req , res)  =>{
+    app.post('/selectclasses'  , async(req , res)  =>{
       const newItem = req.body;
       const result = await studentCollection.insertOne(newItem);
       res.send(result)
@@ -219,6 +221,32 @@ async function run() {
         res.send(result);
     })
 
+    // get by id 
+    app.get('/classes/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+
+      const options = {
+        // Include only the `title` and `imdb` fields in the returned document
+        projection: { name: 1, price: 1, status: 1, img: 1 },
+      };
+
+      const result = await classCollection.findOne(query, options);
+      res.send(result);
+    })
+
+    // updata by admin and next show in classes page
+    app.post('/approveclasses'  , async(req , res)  =>{
+      const newClass = req.body;
+      const result = await approveclassCollection.insertOne(newClass);
+      res.send(result)
+    })
+
+  app.post('/classes'  , async(req , res)  =>{
+    const newItem = req.body;
+    const result = await classCollection.insertOne(newItem);
+    res.send(result)
+  })
 
 
     // create payment intent
@@ -241,7 +269,7 @@ async function run() {
         app.post('/payments', verifyJWT, async (req, res) => {
           const payment = req.body;
           const insertResult = await paymentCollection.insertOne(payment);
-    
+
           res.send({ insertResult });
         });
 
