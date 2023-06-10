@@ -127,7 +127,7 @@ async function run() {
 
     })
     // instructor
-      app.get('/users/instructor/:email' , verifyJWT  , async(req , res)=>{
+      app.get('/users/instructor/:email' , verifyJWT   , async(req , res)=>{
       const email =req.params.email;
 
       if(req.decoded.email !== email){
@@ -197,6 +197,16 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/selectclass/:id' ,async(req , res ) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const option = {
+        projection: {name: 1 , price:1 , email:1},
+      };
+      const result = await studentCollection.findOne(query , option);
+      res.send(result)
+    })
+
     app.delete('/selectclass/:id' , async(req , res) => {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)}
@@ -232,11 +242,8 @@ async function run() {
           const payment = req.body;
           const insertResult = await paymentCollection.insertOne(payment);
     
-          const query = { _id: { $in: payment.selectItems.map(id => new ObjectId(id)) } }
-          const deleteResult = await studentCollection.deleteMany(query)
-    
-          res.send({ insertResult, deleteResult });
-        })
+          res.send({ insertResult });
+        });
 
 
 
