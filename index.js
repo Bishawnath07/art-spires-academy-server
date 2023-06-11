@@ -241,6 +241,11 @@ async function run() {
       const result = await approveclassCollection.insertOne(newClass);
       res.send(result)
     })
+    // get all aprove classes
+    app.get('/appreveclasses', async(req , res) =>{
+      const result = await approveclassCollection.find().toArray();
+      res.send(result)
+    })
 
   app.post('/classes'  , async(req , res)  =>{
     const newItem = req.body;
