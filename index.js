@@ -56,8 +56,6 @@ async function run() {
 
     const classCollection = client.db("artspiresDB").collection("classes")
     const approveclassCollection = client.db("artspiresDB").collection("approveclasses")
-
-
     const usersCollection = client.db("artspiresDB").collection("users")
     const studentCollection = client.db("artspiresDB").collection("selectClass")
     const paymentCollection = client.db("artspiresDB").collection("payments")
@@ -179,7 +177,7 @@ async function run() {
       if(req.query?.email){
         query= {email: req.query.email }
       }
-      const result = await paymentCollection.find(query).sort({ timestamp: -1 }).toArray();
+      const result = await paymentCollection.find(query).sort({ date: -1 }).toArray();
       res.send(result)
 
     })
@@ -188,8 +186,43 @@ async function run() {
     app.post('/selectclasses'  , async(req , res)  =>{
       const newItem = req.body;
       const result = await studentCollection.insertOne(newItem);
+      
       res.send(result)
     })
+
+    app.post('/selectclasses', async (req, res) => {
+      const newItem = req.body;
+    
+      // Retrieve the class document by its _id
+      const classId = newItem.menuItemId;
+      const classDocument = await studentCollection.findOne({ _id: classId });
+    
+      if (!classDocument) {
+        res.status(404).json({ error: "Class not found" });
+        return;
+      }
+    
+      // Increment the enrollment count
+      classDocument.enrolled = (classDocument.enrolled ||  + 1);
+    
+      // Update the class document in the database
+      try {
+        const result = await studentCollection.updateOne(
+          { _id: classId },
+          { $set: { enrolled: classDocument.enrolled } }
+        );
+    
+        if (result.modifiedCount === 1) {
+          res.json({ success: true });
+        } else {
+          res.status(500).json({ error: "Failed to update enrollment count" });
+        }
+      } catch (error) {
+        console.error("Error updating enrollment count:", error);
+        res.status(500).json({ error: "Failed to update enrollment count" });
+      }
+    });
+    
 
     app.get('/selectclass' ,async(req , res) =>{
       const result = await studentCollection.find().toArray();
