@@ -12,7 +12,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const corsConfig = {
   origin: '*',
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE']
+  methods: ['GET', 'POST', 'PUT', 'DELETE' , 'PATCH']
   }
   app.use(cors(corsConfig))
   app.options("", cors(corsConfig))
@@ -90,14 +90,11 @@ async function run() {
         next();
       }
       // Warning: use verifyJWT before using verifyInstructor
-      
+      app.get("/instructorusers", async (req, res) => {
+        const result = await usersCollection.find({ role: "instructor" }).toArray();
+        res.send(result);
+      });
 
-
-    // users relatate api
-    // app.get('/users',verifyJWT , verifyAdmin , async (req , res)=>{
-    //   const result = await usersCollection.find().toArray();
-    //   res.send(result);
-    // })
     app.get('/users' , async (req , res)=>{
       const result = await usersCollection.find().toArray();
       res.send(result);
@@ -143,7 +140,7 @@ async function run() {
 
     })
 
-       app.patch('/users/admin/:id' , async(req ,res) => {
+      app.patch('/users/admin/:id' , async(req ,res) => {
       const id = req.params.id;
       const filter = {_id: new ObjectId(id)} ;
       const updateDoc = {
