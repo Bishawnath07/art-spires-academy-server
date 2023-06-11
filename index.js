@@ -259,7 +259,7 @@ async function run() {
 
       const options = {
         // Include only the `title` and `imdb` fields in the returned document
-        projection: { name: 1, price: 1, status: 1, img: 1 },
+        projection: { name: 1, price: 1, status: 1, email: 1 ,instructor: 1, image: 1 },
       };
 
       const result = await classCollection.findOne(query, options);
@@ -278,6 +278,10 @@ async function run() {
       const newClass = req.body;
       const result = await feedbackCollection.insertOne(newClass);
       res.send(result)
+    })
+    app.get('/getfeedback',async(req, res) =>{
+      const result = await feedbackCollection.find().toArray();
+      res.send(result);
     })
 
     // get all aprove classes
