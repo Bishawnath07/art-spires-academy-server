@@ -59,6 +59,7 @@ async function run() {
     const usersCollection = client.db("artspiresDB").collection("users")
     const studentCollection = client.db("artspiresDB").collection("selectClass")
     const paymentCollection = client.db("artspiresDB").collection("payments")
+    const feedbackCollection = client.db("artspiresDB").collection("feedbacks")
 
     // JWT
     app.post('/jwt' , (req , res) => {
@@ -271,15 +272,25 @@ async function run() {
       const result = await approveclassCollection.insertOne(newClass);
       res.send(result)
     })
+
+    // post feedback in database
+    app.post('/feedback'  , async(req , res)  =>{
+      const newClass = req.body;
+      const result = await feedbackCollection.insertOne(newClass);
+      res.send(result)
+    })
+
     // get all aprove classes
     app.get('/appreveclasses', async(req , res) =>{
       const result = await approveclassCollection.find().toArray();
       res.send(result)
     })
 
+
   app.post('/classes'  , async(req , res)  =>{
     const newItem = req.body;
     const result = await classCollection.insertOne(newItem);
+    
     res.send(result)
   })
 
@@ -303,9 +314,13 @@ async function run() {
         // payment related api
         app.post('/payments', verifyJWT, async (req, res) => {
           const payment = req.body;
+          const id = payment.item;
+          console.log(id)
           const insertResult = await paymentCollection.insertOne(payment);
+          const query = { _id: new ObjectId(id) }
+          const deleteResult = await studentCollection.deleteOne(query)
 
-          res.send({ insertResult });
+          res.send({ insertResult , deleteResult});
         });
 
 
